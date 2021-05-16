@@ -1,0 +1,34 @@
+exercise 0.4 - new note - submit form :
+
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note
+
+note over browser:
+browser executes a POST of the submited form variables to the url
+end note
+
+note over server:
+server side code saves note
+server responds with redirect with the same /notes URL to the browser to show notes
+end note
+
+server-->browser: Location: /notes (302 redirect)
+
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/notes
+server-->browser: HTML-code
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/main.css
+server-->browser: main.css
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/main.js
+server-->browser: main.js
+
+note over browser:
+browser starts executing js-code
+that requests JSON data from server 
+end note
+
+browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/data.json
+server-->browser: [{ content: "HTML is easy", date: "2019-05-23" }, ... also newly saved note]
+
+note over browser:
+browser executes the event handler
+that renders notes to display
+end note

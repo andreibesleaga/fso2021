@@ -1,0 +1,24 @@
+exercise 0.6 - new note SPA - submit form :
+
+note over browser:
+browser executes the event handler sendToServer js-code when submiting form
+browser renders new note to display
+browser executes only an ajax POST of the submited form variables to the url as JSON:
+"{
+  content: "single page app does not reload the whole page",
+  date: "2019-05-25T15:15:59.905Z"
+}"
+end note
+
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+note over server:
+server side code saves note
+server responds with 201 created
+end note
+
+server-->browser: 201 created
+
+note over browser:
+browser js logs in console only the response text from the server
+end note
