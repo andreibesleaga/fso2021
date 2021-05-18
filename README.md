@@ -1,1 +1,2 @@
-# fso2021
+# FullStackOpen 2021
+# course exercises and apps for submission
