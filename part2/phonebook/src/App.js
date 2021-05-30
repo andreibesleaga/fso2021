@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 
+const replacePerson = (persons, pid, persona) => {
+  return persons.map(person => [persona].find( ({id}) => pid === person.id) || person);
+}
 
 const filterPersons = (persons, filter) => {
   const filteredPersons = []
@@ -19,20 +22,20 @@ const Filter = (props) => {
 }
 
 const Persons = (props) => {
-  var filteredPersons = filterPersons(props.persons, props.filter)
+  const filteredPersons = filterPersons(props.persons, props.filter)
   return (
     <ul>
       {filteredPersons.map(person => 
-        <Person key={person.name} persona={person} />
+        <Person key={person.name} persona={person} handlePersonDelete={props.handlePersonDelete} />
       )} 
     </ul>  
   )
 }
 
-const Person = ({persona}) => {
+const Person = (props) => {
   return (
       <li> 
-        {persona.name} : {persona.number}  <br />
+        {props.persona.name} : {props.persona.number} <button value={props.persona.id} onClick={props.handlePersonDelete}>delete</button> <br />
       </li>
   )
 }
@@ -55,11 +58,13 @@ const PersonForm = (props) => {
 const App = () => { 
 
   const [ persons, setPersons ] = useState([
+    /*
     { name: 'Arto Hellas', number: '040-123456' },
     { name: 'Artos Fella', number: '040-123456' },
     { name: 'Ada Lovelace', number: '39-44-5323523' },
     { name: 'Dan Abramov', number: '12-43-234345' },
     { name: 'Mary Poppendieck', number: '39-23-6423122' }    
+    */
   ]) 
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
@@ -67,10 +72,8 @@ const App = () => {
 
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
+    personService.getAll()
       .then(response => {
-        console.log('promise fulfilled')
         setPersons(response.data)
       })
   }, [])
@@ -81,18 +84,35 @@ const App = () => {
     if(newName===''||newNumber==='') {
       alert('name and number must not be empty!')
       return
-    }      
+    }
+
     const personObject = {
       name: newName,
       number: newNumber
-    }    
-    if(persons.findIndex(x => x.name === newName)<0)
-      setPersons(persons.concat(personObject))
-    else
-      alert(`${newName} is already added to phonebook`)
-    setNewName('')
-    setNewNumber('')
+    }
+
+    const result = persons.find( ({ name }) => name === newName );
+
+    if(result===undefined) {
+      personService.create(personObject)
+      .then(response => {
+        setPersons(persons.concat(response.data))
+      })
+      setNewName('')
+      setNewNumber('')
+    } else {
+      if(window.confirm(`${newName} is already added to phonebook. Do you want to update phone number ?`)) {
+        personService.update(result.id, personObject)
+        .then(response => {
+          setPersons(replacePerson(persons, result.id, personObject))
+        })    
+      }
+      setNewName('')
+      setNewNumber('')
+    }
+
   }
+
 
   const handleNameChange = (event) => {
     setNewName(event.target.value)
@@ -105,7 +125,18 @@ const App = () => {
   const handleFilterChange = (event) => {
     setNewFilter(event.target.value)
   }
+
+  const handlePersonDelete = (event) => {
+    if(window.confirm(`Are you sure you want to delete the person?`)) {
+      personService.erase(event.target.value)
+      .then(response => {
+        //setPersons( persons.filter(function (person) { return person.id !== idDel }) )
+        setPersons(persons.filter(person => person.id !== event.target.value))
+      })
+    }
+  }
   
+
   return (
     <div>      
       <h2>Phonebook</h2>
@@ -115,7 +146,7 @@ const App = () => {
       <h2>add a new: </h2>
         <PersonForm newName={newName} newNumber={newNumber} addPerson={addPerson} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange} />
       <h2>Numbers</h2>
-        <Persons persons={persons} filter={filter} />
+        <Persons persons={persons} filter={filter} handlePersonDelete={handlePersonDelete} />
     </div>
   )
 }
