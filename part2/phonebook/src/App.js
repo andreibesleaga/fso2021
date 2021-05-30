@@ -1,8 +1,17 @@
+import './index.css'
 import React, { useState, useEffect } from 'react'
 import personService from './services/persons'
 
-const replacePerson = (persons, pid, persona) => {
-  return persons.map(person => [persona].find( ({id}) => pid === person.id) || person);
+const Notification = (props) => {
+  if (props===null || props.message===null || props.message.message === null || props.message.message===undefined || props.message.message==='') {
+    return null
+  } else {
+    return (
+      <div className={props.message.type}>
+        {props.message.message}
+      </div>
+    )
+  }
 }
 
 const filterPersons = (persons, filter) => {
@@ -55,7 +64,7 @@ const PersonForm = (props) => {
 }
 
 
-const App = () => { 
+const App = () => {
 
   const [ persons, setPersons ] = useState([
     /*
@@ -69,15 +78,19 @@ const App = () => {
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ filter, setNewFilter ] = useState('')
-
+  const [ message, setMessage ] = useState({type:'',message:''})
 
   useEffect(() => {
+    getAll()
+  }, [])
+  
+
+  const getAll = () => {
     personService.getAll()
       .then(response => {
         setPersons(response.data)
       })
-  }, [])
-  
+  }
 
   const addPerson = (event) => {
     event.preventDefault()
@@ -97,6 +110,8 @@ const App = () => {
       personService.create(personObject)
       .then(response => {
         setPersons(persons.concat(response.data))
+        setMessage({type:'info',message:`${newName} added to server`})
+        setTimeout(() => { setMessage(null) }, 5000)
       })
       setNewName('')
       setNewNumber('')
@@ -104,8 +119,14 @@ const App = () => {
       if(window.confirm(`${newName} is already added to phonebook. Do you want to update phone number ?`)) {
         personService.update(result.id, personObject)
         .then(response => {
-          setPersons(replacePerson(persons, result.id, personObject))
-        })    
+          getAll()
+          setMessage({type:'info', message:`${newName} number updated on server`})
+          setTimeout(() => { setMessage(null) }, 5000)
+        }).catch(error => {
+          setMessage({type:'error', message:`Error updating person on server`})
+          setTimeout(() => { setMessage(null) }, 5000)
+          getAll()
+        })
       }
       setNewName('')
       setNewNumber('')
@@ -130,8 +151,14 @@ const App = () => {
     if(window.confirm(`Are you sure you want to delete the person?`)) {
       personService.erase(event.target.value)
       .then(response => {
-        //setPersons( persons.filter(function (person) { return person.id !== idDel }) )
-        setPersons(persons.filter(person => person.id !== event.target.value))
+        //setPersons(persons.filter(person => person.id !== event.target.value))
+        getAll()
+        setMessage({type:'info', message:`Person removed from server`})
+        setTimeout(() => { setMessage(null) }, 5000)
+      }).catch(error => {
+        setMessage({type:'error', message:`Error removing from server`})
+        setTimeout(() => { setMessage(null) }, 5000)
+        getAll()
       })
     }
   }
@@ -140,6 +167,7 @@ const App = () => {
   return (
     <div>      
       <h2>Phonebook</h2>
+      <Notification message={message} />
       <p>filter names:
         <Filter handleFilterChange={handleFilterChange} filter={filter} /> <br />
       </p>
