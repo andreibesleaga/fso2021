@@ -1,4 +1,4 @@
-# FSO 2021 Part 0,1,2
+# Full Stack Open 2021 - Parts 0,1,2
 
 part0 : text files answers: 0.4.txt , 0.5.txt , 0.6.txt
 
